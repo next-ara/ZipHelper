@@ -1,14 +1,13 @@
 package com.next.module.ziphelper;
 
+import com.next.module.file2.File2;
+
 import org.apache.tools.zip.ZipEntry;
 import org.apache.tools.zip.ZipOutputStream;
 
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
-import java.io.File;
-import java.io.FileInputStream;
 import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.ArrayList;
 
@@ -38,48 +37,48 @@ public class ZipCompress {
     /**
      * 生成ZIP压缩包
      *
-     * @param srcFiles 待压缩的文件对象列表
-     * @param zipPath  生成的压缩包路径
+     * @param srcFiles   待压缩的文件对象列表
+     * @param targetFile 生成的压缩包文件对象
      * @throws Exception
      */
-    public void zip(ArrayList<File> srcFiles, String zipPath) throws Exception {
-        File[] files = new File[srcFiles.size()];
+    public void zip(ArrayList<File2> srcFiles, File2 targetFile) throws Exception {
+        File2[] files = new File2[srcFiles.size()];
         for (int i = 0; i < srcFiles.size(); i++) {
             files[i] = srcFiles.get(i);
         }
 
-        zip(files, zipPath, ENCODING_DEFAULT);
+        this.zip(files, targetFile, ENCODING_DEFAULT);
     }
 
     /**
      * 生成ZIP压缩包
      *
-     * @param srcFiles 待压缩的文件对象数组
-     * @param zipPath  生成的压缩包路径
+     * @param srcFiles   待压缩的文件对象数组
+     * @param targetFile 生成的压缩包文件对象
      * @throws Exception
      */
-    public void zip(File[] srcFiles, String zipPath) throws Exception {
-        zip(srcFiles, zipPath, ENCODING_DEFAULT);
+    public void zip(File2[] srcFiles, File2 targetFile) throws Exception {
+        this.zip(srcFiles, targetFile, ENCODING_DEFAULT);
     }
 
     /**
      * 生成ZIP压缩包
      *
-     * @param srcFiles 待压缩的文件对象数组
-     * @param zipPath  生成的压缩包路径
-     * @param encoding 编码格式
+     * @param srcFiles   待压缩的文件对象数组
+     * @param targetFile 生成的压缩包文件对象
+     * @param encoding   编码格式
      * @throws Exception
      */
-    public void zip(File[] srcFiles, String zipPath, String encoding) throws Exception {
+    public void zip(File2[] srcFiles, File2 targetFile, String encoding) throws Exception {
         //计算压缩包总大小
         this.totalSize = this.getTotalSize(srcFiles);
         LogTool.i(ZipConfig.TAG, "文件总大小：" + this.totalSize);
 
-        ZipOutputStream zipOut = new ZipOutputStream(new BufferedOutputStream(new FileOutputStream(zipPath)));
+        ZipOutputStream zipOut = new ZipOutputStream(new BufferedOutputStream(targetFile.openOutputStream()));
         zipOut.setEncoding(encoding);
         for (int i = 0; i < srcFiles.length; i++) {
-            File file = srcFiles[i];
-            doZipFile(zipOut, file, file.getParent());
+            File2 file = srcFiles[i];
+            this.doZipFile(zipOut, file);
         }
 
         zipOut.flush();
@@ -89,20 +88,15 @@ public class ZipCompress {
     /**
      * 执行压缩文件
      *
-     * @param zipOut  压缩输出流
-     * @param file    文件对象
-     * @param dirPath 文件夹路径
+     * @param zipOut 压缩输出流
+     * @param file   文件对象
      * @throws FileNotFoundException
      * @throws IOException
      */
-    private void doZipFile(ZipOutputStream zipOut, File file, String dirPath) throws FileNotFoundException, IOException {
+    private void doZipFile(ZipOutputStream zipOut, File2 file) throws IOException {
         if (file.isFile()) {
-            BufferedInputStream bis = new BufferedInputStream(new FileInputStream(file));
-            String zipName = file.getPath().substring(dirPath.length());
-            while (zipName.charAt(0) == '\\' || zipName.charAt(0) == '/') {
-                zipName = zipName.substring(1);
-            }
-            ZipEntry entry = new ZipEntry(zipName);
+            BufferedInputStream bis = new BufferedInputStream(file.openInputStream());
+            ZipEntry entry = new ZipEntry(file.getName());
             zipOut.putNextEntry(entry);
             byte[] buff = new byte[BUFFER_SIZE_DIFAULT];
             int size;
@@ -117,9 +111,9 @@ public class ZipCompress {
             zipOut.closeEntry();
             bis.close();
         } else {
-            File[] subFiles = file.listFiles();
-            for (File subFile : subFiles) {
-                doZipFile(zipOut, subFile, dirPath);
+            File2[] subFiles = file.listFiles();
+            for (File2 subFile : subFiles) {
+                this.doZipFile(zipOut, subFile);
             }
         }
     }
@@ -130,9 +124,9 @@ public class ZipCompress {
      * @param srcFiles 待压缩的文件对象数组
      * @return
      */
-    private long getTotalSize(File[] srcFiles) {
+    private long getTotalSize(File2[] srcFiles) {
         if (this.totalSize == 0) {
-            for (File file : srcFiles) {
+            for (File2 file : srcFiles) {
                 //递归获取压缩包大小
                 this.totalSize += this.getSize(file);
             }
@@ -147,13 +141,13 @@ public class ZipCompress {
      * @param file 文件对象
      * @return
      */
-    private long getSize(File file) {
+    private long getSize(File2 file) {
         long size = 0;
         if (file.isFile()) {
             size = file.length();
         } else {
-            File[] subFiles = file.listFiles();
-            for (File subFile : subFiles) {
+            File2[] subFiles = file.listFiles();
+            for (File2 subFile : subFiles) {
                 size += this.getSize(subFile);
             }
         }

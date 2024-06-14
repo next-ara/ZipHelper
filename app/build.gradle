@@ -15,7 +15,7 @@ afterEvaluate {
                 from components.release
                 groupId = 'com.next.module.ziphelper'
                 artifactId = 'ZipHelper'
-                version = "1.0.0"
+                version = "1.0.1"
             }
         }
     }
@@ -44,6 +44,9 @@ android {
 }
 
 dependencies {
+    //File2
+    implementation 'com.github.next-ara:File2:1.0.2'
+
     implementation 'androidx.appcompat:appcompat:1.6.1'
     implementation 'org.apache.ant:ant:1.10.5'
 }

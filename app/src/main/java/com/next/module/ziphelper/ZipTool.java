@@ -1,5 +1,7 @@
 package com.next.module.ziphelper;
 
+import com.next.module.file2.File2;
+
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Timer;
@@ -21,7 +23,7 @@ public class ZipTool {
      * @param targetFile    压缩后目标文件对象
      * @param onZipListener 压缩监听接口
      */
-    public static void zip(ArrayList<File> srcFiles, File targetFile, OnZipListener onZipListener) {
+    public static void zip(ArrayList<File2> srcFiles, File2 targetFile, OnZipListener onZipListener) {
         LogTool.i(ZipConfig.TAG, "开始压缩");
         ZipCompress zipCompress = new ZipCompress();
         Timer timer = new Timer();
@@ -35,7 +37,7 @@ public class ZipTool {
         new Thread(() -> {
             try {
                 onZipListener.onStart();
-                zipCompress.zip(srcFiles, targetFile.getPath());
+                zipCompress.zip(srcFiles, targetFile);
                 timer.cancel();
                 timer.purge();
                 onZipListener.onProgress(100);
@@ -45,7 +47,7 @@ public class ZipTool {
                 timer.cancel();
                 timer.purge();
                 onZipListener.onFinish(false);
-                LogTool.e(ZipConfig.TAG, "压缩失败：" + e.toString());
+                LogTool.e(ZipConfig.TAG, "压缩失败：" + e);
             }
         }).start();
     }
